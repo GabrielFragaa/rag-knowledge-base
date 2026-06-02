@@ -1,18 +1,18 @@
-# ⚙️ Setup & Configuração
+# Setup & Configuration
 
-> Versão pública/genérica. **Nenhuma credencial real** está incluída — configure as suas.
+> Public, generic version. No real credentials are included, configure your own.
 
-## Pré-requisitos
+## Prerequisites
 
-| Serviço | Para quê | Credencial esperada |
+| Service | What for | Expected credential |
 |---|---|---|
-| **n8n** | Orquestração do workflow | self-hosted ou cloud |
-| **OpenAI** | Geração de embeddings (1536 dim) | `OPENAI_API_KEY` |
-| **Supabase / Postgres + pgvector** | Vector store (armazenamento e busca) | `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` |
+| **n8n** | Runs the ingestion workflow | self-hosted or cloud |
+| **OpenAI** | Generates the embeddings (1536 dim) | `OPENAI_API_KEY` |
+| **Supabase / Postgres + pgvector** | Vector store (storage and search) | `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` |
 
-## 1. Provisione a base vetorial (SQL pré-requisito)
+## 1. Provision the vector base (prerequisite SQL)
 
-No **SQL Editor do Supabase**, rode o script abaixo. Ele habilita a extensão `vector`, cria a tabela `documents` e a função `match_documents` (busca por distância de cosseno com filtro por metadados).
+In the Supabase SQL Editor, run the script below. It enables the `vector` extension, creates the `documents` table, and the `match_documents` function (cosine distance search with metadata filtering).
 
 ```sql
 create extension if not exists vector;
@@ -47,35 +47,35 @@ end;
 $$;
 ```
 
-> ⚠️ **Acoplamento de dimensão:** `vector(1536)` precisa bater com o modelo de embeddings escolhido (ex.: `text-embedding-3-small` = 1536 dimensões). Se trocar o modelo, ajuste a dimensão da coluna.
+> Dimension coupling: `vector(1536)` must match the chosen embedding model (for example, `text-embedding-3-small` is 1536 dimensions). If you change the model, adjust the column dimension.
 
-## 2. Importe o workflow
+## 2. Import the workflow
 
-1. `n8n → Workflows → Import from File → workflow.json`
-2. Os nós já apontam para placeholders de credencial — basta selecionar a sua.
+1. `n8n` > `Workflows` > `Import from File` > `workflow.json`
+2. The nodes already point to credential placeholders, just select your own.
 
-## 3. Crie as credenciais no n8n
+## 3. Create the credentials in n8n
 
-Em `Credentials → New`, cadastre:
+In `Credentials` > `New`, register:
 
-- **Supabase API** — Host (`SUPABASE_URL`) e Service Role Key (`Project Settings > API`)
-- **OpenAI API** — sua chave de API
+- **Supabase API**: Host (`SUPABASE_URL`) and Service Role Key (`Project Settings > API`)
+- **OpenAI API**: your API key
 
-Depois, abra cada nó e selecione a credencial correspondente:
+Then open each node and select the matching credential:
 
-| Nó | Credencial |
+| Node | Credential |
 |---|---|
-| Embeddings OpenAI | OpenAI API |
-| Inserir no Supabase pgvector | Supabase API |
+| OpenAI Embeddings | OpenAI API |
+| Insert into Supabase pgvector | Supabase API |
 
-## 4. Ative e teste
+## 4. Activate and test
 
-1. **Ative** o workflow.
-2. Abra a **URL do formulário** (nó Form Trigger) e faça upload de um documento de teste, marcando uma ou mais categorias.
-3. Confira no Supabase que a tabela `documents` recebeu linhas com `content`, `metadata` (categorias, fonte, data) e `embedding`.
-4. A partir daí, um agente pode chamar `match_documents` para recuperar trechos por similaridade.
+1. Activate the workflow.
+2. Open the form URL (Form Trigger node) and upload a test document, selecting one or more categories.
+3. Check in Supabase that the `documents` table received rows with `content`, `metadata` (categories, source, date), and `embedding`.
+4. From there, an agent can call `match_documents` to retrieve passages by similarity.
 
-## Variáveis de ambiente (exemplo)
+## Environment variables (example)
 
 ```env
 OPENAI_API_KEY=sk-xxxxxxxx
@@ -83,4 +83,4 @@ SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=xxxxxxxx
 ```
 
-> 🔒 Nunca comite credenciais reais. Use variáveis de ambiente / o gerenciador de credenciais do n8n.
+> Never commit real credentials. Use environment variables or the n8n credential manager.
